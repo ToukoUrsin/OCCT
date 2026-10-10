@@ -49,6 +49,20 @@ void RWStepRepr_RWCompoundRepresentationItem::ReadStep(
   int                                                                        nsub2;
   if (data->ReadSubList(num, 2, "item_element", ach, nsub2))
   {
+    // compound_item_definition is a SELECT of a list or set of representation items.
+    // Typed aggregates have an outer record (e.g. SET_REPRESENTATION_ITEM)
+    // containing the actual aggregate as their single parameter.
+    if (data->RecordType(nsub2) == "SET_REPRESENTATION_ITEM"
+        || data->RecordType(nsub2) == "LIST_REPRESENTATION_ITEM")
+    {
+      int anItemsSubList;
+      if (!data->CheckNbParams(nsub2, 1, ach, "compound_item_definition")
+          || !data->ReadSubList(nsub2, 1, "item_element", ach, anItemsSubList))
+      {
+        return;
+      }
+      nsub2 = anItemsSubList;
+    }
     int nb2 = data->NbParams(nsub2);
     aItems  = new NCollection_HArray1<occ::handle<StepRepr_RepresentationItem>>(1, nb2);
     for (int i2 = 1; i2 <= nb2; i2++)
